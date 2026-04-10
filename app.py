@@ -102,38 +102,26 @@ def login_page():
     st.markdown("<h3 style='text-align: center; color: #4A90E2;'>A aventura da nossa família!</h3>", unsafe_allow_html=True)
     st.write("---")
     
-    st.write("<h2 style='text-align: center;'>Escolha quem você é:</h2>", unsafe_allow_html=True)
-    st.write("")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("👩‍🏫 Sou Pai/Mãe"):
-            st.session_state.temp_login_role = 'parent'
-            st.rerun()
-    with col2:
-        if st.button("🧒 Sou Filho(a)", type="primary"):
-            st.session_state.temp_login_role = 'child'
-            st.rerun()
-            
-    if 'temp_login_role' in st.session_state:
+    if 'temp_login_role' not in st.session_state:
+        st.write("<h2 style='text-align: center;'>Escolha quem você é:</h2>", unsafe_allow_html=True)
+        st.write("")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👩‍🏫 Sou Pai/Mãe"):
+                st.session_state.temp_login_role = 'parent'
+                st.rerun()
+        with col2:
+            if st.button("🧒 Sou Filho(a)", type="primary"):
+                st.session_state.temp_login_role = 'child'
+                st.rerun()
+    else:
         role = st.session_state.temp_login_role
         
-        components.html(
-            """
-            <script>
-            setTimeout(() => {
-                var doc = window.parent.document;
-                var app = doc.querySelector('.stApp') || doc.querySelector('.main') || doc.body;
-                if(app) {
-                    app.scrollTo({ top: app.scrollHeight, behavior: 'smooth' });
-                }
-                // Fallback Window
-                window.parent.scrollTo({ top: doc.body.scrollHeight, behavior: 'smooth' });
-            }, 700);
-            </script>
-            """, height=0
-        )
-        
+        if st.button("⬅️ Trocar Perfil / Voltar"):
+            del st.session_state.temp_login_role
+            st.rerun()
+            
         st.write("---")
         if role == 'parent':
             st.markdown("<h3>Painel dos Pais 🔒</h3>", unsafe_allow_html=True)
