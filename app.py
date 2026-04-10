@@ -104,7 +104,7 @@ def login_page():
     st.write("<h2 style='text-align: center;'>Escolha quem você é:</h2>", unsafe_allow_html=True)
     st.write("")
     
-    _, col1, col2, _ = st.columns([1, 2, 2, 1])
+    col1, col2 = st.columns(2)
     with col1:
         if st.button("👩‍🏫 Sou Pai/Mãe"):
             st.session_state.temp_login_role = 'parent'

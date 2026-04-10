@@ -154,8 +154,8 @@ def show_arcade(user):
         <html>
         <head>
             <style>
-                body { margin: 0; padding: 0; background-color: #F2FAFF; color: #1E1E1E; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: auto; }
-                .arcade-machine { background-color: #00203f; padding: 20px; border-radius: 20px; border: 5px solid #FFCA4A; text-align: center; box-shadow: 0px 10px 20px rgba(0,0,0,0.3); margin-top:20px; }
+                body { margin: 0; padding: 0; background-color: transparent; color: #E6F1FF; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+                .arcade-machine { background-color: #08101E; padding: 20px; border-radius: 20px; border: 5px solid #FFCA4A; text-align: center; box-shadow: 0px 10px 20px rgba(0,0,0,0.3); margin-top:20px; }
                 canvas { background-color: #111; border: 4px solid #2EC4B6; border-radius: 10px; width: 300px; height: 300px; }
                 #scoreBoard { font-size: 24px; font-weight: 900; margin-bottom: 20px; color: #FFD166; }
                 #controls { margin-top: 20px; display: grid; grid-template-columns: 60px 60px 60px; grid-gap: 10px; justify-content: center; justify-items: center;}
@@ -263,7 +263,7 @@ def show_arcade(user):
         </body>
         </html>
         """
-        components.html(html_code, height=750, scrolling=False)
+        components.html(html_code, height=520, scrolling=False)
         
     elif game_choice == "🧠 Jogo da Memória":
         html_code = """
@@ -271,12 +271,12 @@ def show_arcade(user):
         <html>
         <head>
         <style>
-          body { margin:0; padding:10px; background:#F2FAFF; font-family:'Segoe UI', sans-serif; text-align:center; display: flex; flex-direction: column; align-items: center;}
+          body { margin:0; padding:10px; background:transparent; color:#E6F1FF; font-family:'Segoe UI', sans-serif; text-align:center; display: flex; flex-direction: column; align-items: center;}
           #board { display: grid; grid-template-columns: repeat(4, 70px); grid-gap: 10px; justify-content: center; margin-top: 20px;}
           .card { width: 70px; height: 70px; background: #4A90E2; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select:none; box-shadow: 0px 5px 0px #3174C6;}
           .card.flipped { background: #FFF; border: 3px solid #2EC4B6; cursor: default; transform: translateY(3px); box-shadow: none;}
           .card.matched { background: #FFF3B0; border: 3px solid #FFCA4A; opacity: 0.8;}
-          .arcade-machine { background:#00203f; padding:20px; border-radius:20px; border:5px solid #FFCA4A; color:white; margin-top:20px; box-shadow: 0px 10px 20px rgba(0,0,0,0.3);}
+          .arcade-machine { background:#08101E; padding:20px; border-radius:20px; border:5px solid #FFCA4A; color:white; margin-top:20px; box-shadow: 0px 10px 20px rgba(0,0,0,0.3);}
           button.reset { margin-top:30px; padding:15px 30px; font-size:20px; font-weight:bold; border-radius:15px; background:#EF476F; color:white; border:none; cursor:pointer; box-shadow: 0px 5px 0px #C12A4F;}
           button.reset:active { transform:translateY(3px); box-shadow:none;}
           #status { font-size: 24px; font-weight: 900; color: #2EC4B6; }
@@ -379,4 +379,4 @@ def show_arcade(user):
         </body>
         </html>
         """
-        components.html(html_code, height=650, scrolling=False)
+        components.html(html_code, height=520, scrolling=False)
