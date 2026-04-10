@@ -122,8 +122,14 @@ def login_page():
             """
             <script>
             setTimeout(() => {
-                window.parent.scrollTo({ top: window.parent.document.body.scrollHeight, behavior: 'smooth' });
-            }, 100);
+                var doc = window.parent.document;
+                var app = doc.querySelector('.stApp') || doc.querySelector('.main') || doc.body;
+                if(app) {
+                    app.scrollTo({ top: app.scrollHeight, behavior: 'smooth' });
+                }
+                // Fallback Window
+                window.parent.scrollTo({ top: doc.body.scrollHeight, behavior: 'smooth' });
+            }, 700);
             </script>
             """, height=0
         )
