@@ -2,6 +2,7 @@ import streamlit as st
 import db
 import parent_view
 import child_view
+import streamlit.components.v1 as components
 
 # App Config for Mobile First look
 st.set_page_config(
@@ -116,6 +117,17 @@ def login_page():
             
     if 'temp_login_role' in st.session_state:
         role = st.session_state.temp_login_role
+        
+        components.html(
+            """
+            <script>
+            setTimeout(() => {
+                window.parent.scrollTo({ top: window.parent.document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
+            </script>
+            """, height=0
+        )
+        
         st.write("---")
         if role == 'parent':
             st.markdown("<h3>Painel dos Pais 🔒</h3>", unsafe_allow_html=True)
