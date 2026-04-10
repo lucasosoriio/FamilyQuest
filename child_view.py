@@ -263,7 +263,7 @@ def show_arcade(user):
         </body>
         </html>
         """
-        components.html(html_code, height=520, scrolling=False)
+        components.html(html_code, height=600, scrolling=False)
         
     elif game_choice == "🧠 Jogo da Memória":
         html_code = """
