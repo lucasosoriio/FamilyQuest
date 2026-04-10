@@ -5,7 +5,70 @@ import plotly.express as px
 import time
 import streamlit.components.v1 as components
 
+def show_pet(user):
+    xp = user.get('xp', 0)
+    level = 1 + (xp // 100)
+    
+    st.markdown("<h2 style='text-align:center;'>🐾 Mascote Virtual</h2>", unsafe_allow_html=True)
+    
+    if level < 5:
+        st.info(f"Ovos mágicos da família só chocam no Nível 5! Faltam {400 - xp} XP para o seu abrir. Estude e cumpra missões!")
+        st.markdown("<h1 style='text-align:center; font-size:100px; animation: pulse 2s infinite;'>🥚</h1>", unsafe_allow_html=True)
+        st.write("---")
+        return
+        
+    pet = db.get_pet_for_child(user['id'])
+    
+    if not pet:
+        st.success("✨ Seu ovo mágico está prestes a chocar! Escolha quem sairá dele:")
+        with st.form("chocar_pet"):
+            col1, col2 = st.columns(2)
+            with col1:
+                p_name = st.text_input("Dê um nome mágico:")
+            with col2:
+                p_type = st.selectbox("Escolha a Espécie:", ["🐶 Cãozinho Fiel", "🐱 Gatinho Ágil", "🦊 Raposa Esperta", "🐉 Dragão Bebê", "🦖 Dino Comilão"])
+            if st.form_submit_button("Chocar Ovo! 🐣", type="primary"):
+                if p_name.strip():
+                    db.create_pet(user['id'], p_name.strip(), p_type)
+                    st.balloons()
+                    st.toast(f"Bem-vindo à família, {p_name.strip()}!")
+                    time.sleep(1.5)
+                    st.rerun()
+                else:
+                    st.error("Batize seu pet primeiro!")
+        st.write("---")
+        return
+
+    # Pet Status Output
+    hunger = min(100, max(0, pet['hunger']))
+    happ = min(100, max(0, pet['happiness']))
+    
+    # Emoji extraído do tipo
+    face = pet['type'][0] 
+    if hunger <= 20 or happ <= 20:
+        face = "🤕"
+    elif hunger <= 50 or happ <= 50:
+        face = "🥺"
+    
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.markdown(f"<div style='text-align:center; background-color:#08101E; padding:15px; border-radius:15px; border:2px solid #2EC4B6;'><span style='font-size:70px;'>{face}</span><br><b style='color:#FFCA4A; font-size:20px;'>{pet['name']}</b></div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"<b>🍎 Fome (Faça Tarefas para Alimentar):</b> {hunger}%", unsafe_allow_html=True)
+        st.progress(hunger / 100.0)
+        st.write("")
+        st.markdown(f"<b>🎾 Alegria (Estude para Brincar):</b> {happ}%", unsafe_allow_html=True)
+        st.progress(happ / 100.0)
+        
+        if hunger <= 30:
+            st.warning("A barriga do mascote está roncando! Complete missões pendentes na casa para ganhar mais ração!")
+        if happ <= 30:
+            st.warning("O mascote está entediado! Faça uma sessão de exercícios ou de estudos em 'Forte Mente' para ele brincar!")
+            
+    st.write("---")
+
 def show_missions(user):
+    show_pet(user)
     st.markdown("<h2 style='text-align:center;'>🚀 Minhas Missões de Hoje!</h2>", unsafe_allow_html=True)
     tasks = db.get_tasks_for_child(user['id'])
     pending_tasks = [t for t in tasks if t['status'] == 'pending']

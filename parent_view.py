@@ -1,6 +1,7 @@
 import streamlit as st
 import db
 import pandas as pd
+import time
 
 def show_main_dashboard():
     st.markdown("<h2>🏠 Gerenciar Participantes e Missões</h2>", unsafe_allow_html=True)
@@ -103,9 +104,10 @@ def show_approvals():
                             if st.button("VERDADE (Aprovar)", key=f"app_{t['id']}", type="primary"):
                                 db.update_task_status(t['id'], 'completed')
                                 db.create_transaction_and_update_balance(child['id'], f"Prêmio Missão: {t['title']}", t['reward'], 'earn')
-                                # Add XP for completing a task!
-                                db.add_user_xp(child['id'], 15) 
-                                st.toast("Moedas enviadas para o cofre!")
+                                db.add_user_xp(child['id'], 10)
+                                db.update_pet_status(child['id'], hunger_delta=20)
+                                st.toast(f"✅ Tarefa Aprovada! {child.get('name')} ganhou R$ {t['reward']:.2f}, +10 XP e alimentou o mascote!")
+                                time.sleep(1.5)
                                 st.rerun()
                         with col2:
                             if st.button("MENTIRA (Rejeitar)", key=f"rej_{t['id']}"):

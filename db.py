@@ -40,6 +40,20 @@ def check_and_apply_migrations():
             FOREIGN KEY (child_id) REFERENCES users (id)
         )
     ''')
+    
+    # Pets table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS pets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            child_id INTEGER,
+            name TEXT,
+            type TEXT,
+            hunger INTEGER DEFAULT 50,
+            happiness INTEGER DEFAULT 50,
+            last_interaction DATETIME,
+            FOREIGN KEY (child_id) REFERENCES users (id)
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -99,6 +113,18 @@ def init_db():
             date DATE,
             description TEXT,
             attachment TEXT
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS pets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            child_id INTEGER,
+            name TEXT,
+            type TEXT,
+            hunger INTEGER DEFAULT 50,
+            happiness INTEGER DEFAULT 50,
+            last_interaction DATETIME,
+            FOREIGN KEY (child_id) REFERENCES users (id)
         )
     ''')
     conn.commit()
@@ -222,6 +248,8 @@ def add_study_session(child_id, duration_minutes):
     conn.close()
     # Also add 1 XP per minute studied
     add_user_xp(child_id, duration_minutes)
+    # Restore pet happiness
+    update_pet_status(child_id, happiness_delta=25)
 
 def get_study_history(child_id):
     conn = get_connection()
@@ -330,4 +358,66 @@ def update_purchase_status(purchase_id, status):
     c = conn.cursor()
     c.execute("UPDATE purchases SET status=? WHERE id=?", (status, purchase_id))
     conn.commit()
+    conn.close()
+
+# --- FUNCOES DO MASCOTE (PET) ---
+
+def get_pet_for_child(child_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM pets WHERE child_id = ?", (child_id,))
+    pet = cursor.fetchone()
+    conn.close()
+    if pet:
+        columns = [col[0] for col in cursor.description]
+        return dict(zip(columns, pet))
+    return None
+
+def create_pet(child_id, name, type):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("INSERT INTO pets (child_id, name, type, hunger, happiness, last_interaction) VALUES (?, ?, ?, ?, ?, ?)", 
+                   (child_id, name, type, 50, 50, now_str))
+    conn.commit()
+    conn.close()
+
+def update_pet_status(child_id, hunger_delta=0, happiness_delta=0):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, hunger, happiness FROM pets WHERE child_id = ?", (child_id,))
+    pet = cursor.fetchone()
+    if pet:
+        pet_id = pet[0]
+        hunger = pet[1]
+        happ = pet[2]
+        new_hunger = min(100, max(0, hunger + hunger_delta))
+        new_happ = min(100, max(0, happ + happiness_delta))
+        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("UPDATE pets SET hunger=?, happiness=?, last_interaction=? WHERE id=?", 
+                       (new_hunger, new_happ, now_str, pet_id))
+        conn.commit()
+    conn.close()
+
+def calculate_pet_decay(child_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, hunger, happiness, last_interaction FROM pets WHERE child_id = ?", (child_id,))
+    pet = cursor.fetchone()
+    if pet:
+        pet_id, hunger, happ, last_interaction = pet
+        if last_interaction:
+            try:
+                last_dt = datetime.datetime.strptime(last_interaction, "%Y-%m-%d %H:%M:%S")
+                hours_passed = (datetime.datetime.now() - last_dt).total_seconds() / 3600.0
+                decay = int(hours_passed * 2)
+                if decay > 0:
+                    new_hunger = max(0, hunger - decay)
+                    new_happ = max(0, happ - decay)
+                    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute("UPDATE pets SET hunger=?, happiness=?, last_interaction=? WHERE id=?", 
+                                   (new_hunger, new_happ, now_str, pet_id))
+                    conn.commit()
+            except Exception as e:
+                pass
     conn.close()

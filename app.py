@@ -185,6 +185,7 @@ def main():
 
         elif st.session_state.role == 'child':
             user = db.get_user_by_id(st.session_state.current_user['id']) # get fresh
+            db.calculate_pet_decay(user['id']) # Sync pet stats
             
             with st.sidebar:
                 avatar_display = user.get('avatar', '👦')
