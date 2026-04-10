@@ -60,20 +60,37 @@ def show_main_dashboard():
     
     st.write("---")
     st.markdown("<h3>⚔️ Atribuir Novas Missões</h3>", unsafe_allow_html=True)
+    
+    age_group = st.selectbox("Filtro de Sugestões por Idade:", ["Personalizada (Criar do Zero)", "👼 3 a 5 anos", "👦 6 a 9 anos", "🧑 10 a 14 anos"])
+    if age_group == "👼 3 a 5 anos":
+        options = ["Guardar os brinquedos na caixa", "Levar o próprio prato para a pia", "Regar as plantinhas", "Escovar os dentes sem chorar"]
+    elif age_group == "👦 6 a 9 anos":
+        options = ["Arrumar a própria cama", "Organizar a mochila da escola", "Colocar ração para o pet da casa", "Tomar banho no horário"]
+    elif age_group == "🧑 10 a 14 anos":
+        options = ["Lavar, secar e guardar a louça", "Tirar o lixo da casa para a rua", "Aspirar e limpar o próprio quarto", "Ajudar a fazer as refeições"]
+    else:
+        options = []
+        
     with st.form("new_task_form"):
-        task_title = st.text_input("Nome da Missão (Ex: Escovar os dentes sem reclamar)")
-        task_desc = st.text_area("O que precisa ser feito exatamente?")
-        task_freq = st.selectbox("Freq.", ["Diária (repete todo dia)", "Única (faz uma vez e acabou)"])
+        preset = ""
+        if options:
+            preset = st.selectbox("Escolha uma Missão Pré-configurada:", options)
+            st.markdown("*(Ou preencha a caixinha abaixo para ignorar a sugestão e criar uma do zero)*")
+        
+        custom_title = st.text_input("Nome da Missão Personalizada:")
+        task_desc = st.text_area("O que precisa ser feito exatamente? (Detalhes)")
+        task_freq = st.selectbox("Frequência:", ["Diária (repete todo dia)", "Única (faz uma vez e acabou)"])
         task_freq_key = 'diaria' if 'Diária' in task_freq else 'unica'
         task_reward = st.number_input("Recompensa da Missão (R$ ou Moedas)", min_value=0.0, step=0.5, value=2.0)
         
         if st.form_submit_button("Lançar Missão aos Filhos!"):
-            if task_title:
-                db.create_task(selected_child['id'], task_title, task_desc, task_freq_key, task_reward)
+            final_title = custom_title.strip() if custom_title.strip() else preset
+            if final_title:
+                db.create_task(selected_child['id'], final_title, task_desc, task_freq_key, task_reward)
                 st.toast("✅ A missão foi lançada!")
                 st.rerun()
             else:
-                st.error("Dê um nome para a missão.")
+                st.error("Ops! Você não selecionou ou digitou nenhuma missão.")
 
     st.markdown("<h4>📋 Missões Ativas</h4>", unsafe_allow_html=True)
     tasks = db.get_tasks_for_child(selected_child['id'])
