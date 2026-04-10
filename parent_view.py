@@ -68,37 +68,53 @@ def show_main_dashboard():
     
     if c_age <= 5:
         suggestions = [
-            ("Guardar os brinquedos na caixa", 1.0),
-            ("Levar o prato para a pia", 1.0),
-            ("Regar as plantinhas", 1.5),
-            ("Escovar os dentes sem chorar", 2.0)
+            ("Guardar os brinquedos na caixa", 1.0, "diaria"),
+            ("Levar o prato para a pia", 1.0, "diaria"),
+            ("Regar as plantinhas", 1.5, "diaria"),
+            ("Escovar os dentes sem chorar", 2.0, "diaria"),
+            ("Arrumar os sapatos no armário", 1.0, "diaria"),
+            ("Comer todos os legumes da refeição", 1.5, "diaria"),
+            ("Tomar banho sem enrolar", 1.5, "diaria")
         ]
     elif c_age <= 9:
         suggestions = [
-            ("Arrumar a própria cama", 3.0),
-            ("Organizar a mochila", 2.0),
-            ("Colocar ração/água pro pet", 2.0),
-            ("Tomar banho no horário", 2.5)
+            ("Arrumar a própria cama", 3.0, "diaria"),
+            ("Organizar a mochila e uniforme", 2.0, "diaria"),
+            ("Colocar ração/água pro pet", 2.0, "diaria"),
+            ("Tomar banho no horário", 2.5, "diaria"),
+            ("Fazer a lição de casa sem reclamar", 3.0, "diaria"),
+            ("Tirar o pó das estantes ou móveis", 2.5, "unica"),
+            ("Ajudar a colocar/tirar a mesa", 2.0, "diaria"),
+            ("Ler um livro ou revista por 20 min", 3.0, "diaria")
         ]
     else:
         suggestions = [
-            ("Lavar, secar e guardar a louça", 4.0),
-            ("Tirar o lixo da casa", 3.0),
-            ("Aspirar/Varrer o quarto", 5.0),
-            ("Ajudar a fazer as refeições", 4.0)
+            ("Lavar, secar e guardar a louça", 4.0, "diaria"),
+            ("Tirar o lixo da casa para a rua", 3.0, "diaria"),
+            ("Aspirar/Varrer o quarto", 5.0, "diaria"),
+            ("Ajudar a fazer as refeições", 4.0, "diaria"),
+            ("Passear com o cachorro / Lavar quintal", 5.0, "diaria"),
+            ("Organizar todo o guarda-roupa", 10.0, "unica"),
+            ("Estudar matéria escolar extra por 1h", 6.0, "diaria"),
+            ("Ajudar a lavar o carro da família", 15.0, "unica")
         ]
         
     with st.form("new_task_form"):
         st.write("**Sugestões Rápidas (Pode marcar várias ao mesmo tempo):**")
         selected_presets = []
-        for i, (s_title, s_price) in enumerate(suggestions):
-            col1, col2 = st.columns([3, 1])
+        for i, (s_title, s_price, s_req_freq) in enumerate(suggestions):
+            col1, col2, col3 = st.columns([3, 1, 1])
             with col1:
                 checked = st.checkbox(s_title, key=f"chk_{i}")
             with col2:
                 price = st.number_input("R$", value=s_price, min_value=0.0, step=0.5, key=f"prc_{i}", label_visibility="collapsed")
+            with col3:
+                freq_idx = 0 if s_req_freq == 'diaria' else 1
+                freq = st.selectbox("Freq", ["Diária", "Única"], index=freq_idx, key=f"frq_{i}", label_visibility="collapsed")
+                
             if checked:
-                selected_presets.append((s_title, price))
+                freq_key = 'diaria' if freq == "Diária" else 'unica'
+                selected_presets.append((s_title, price, freq_key))
                 
         st.write("---")
         st.write("**Ou envie uma missão Extra Personalizada:**")
@@ -110,8 +126,8 @@ def show_main_dashboard():
         
         if st.form_submit_button("Atribuir Missões ao Painel da Criança!"):
             launched = False
-            for p_title, p_reward in selected_presets:
-                db.create_task(selected_child['id'], p_title, "", 'diaria', p_reward)
+            for p_title, p_reward, p_freq in selected_presets:
+                db.create_task(selected_child['id'], p_title, "", p_freq, p_reward)
                 launched = True
             
             if custom_title.strip():
