@@ -99,25 +99,28 @@ def show_main_dashboard():
             ("Ajudar a lavar o carro da família", 15.0, "unica")
         ]
         
+    suggestion_dict = { s[0]: s for s in suggestions }
+    selected_titles = st.multiselect("Selecione quais missões sugeridas deseja aplicar:", list(suggestion_dict.keys()))
+        
     with st.form("new_task_form"):
-        st.write("**Sugestões Rápidas (Pode marcar várias ao mesmo tempo):**")
         selected_presets = []
-        for i, (s_title, s_price, s_req_freq) in enumerate(suggestions):
-            col1, col2, col3 = st.columns([3, 1, 1])
-            with col1:
-                checked = st.checkbox(s_title, key=f"chk_{i}")
-            with col2:
-                price = st.number_input("R$", value=s_price, min_value=0.0, step=0.5, key=f"prc_{i}", label_visibility="collapsed")
-            with col3:
-                freq_opts = ["Diária", "Semanal", "Mensal", "Única"]
-                freq_idx = 0 if s_req_freq == 'diaria' else 3
-                freq = st.selectbox("Freq", freq_opts, index=freq_idx, key=f"frq_{i}", label_visibility="collapsed")
-                
-            if checked:
+        if selected_titles:
+            st.write("**Ajuste o valor e frequência das missões selecionadas:**")
+            for i, title in enumerate(selected_titles):
+                s_title, s_price, s_req_freq = suggestion_dict[title]
+                st.markdown(f"**🔹 {s_title}**")
+                col1, col2 = st.columns(2)
+                with col1:
+                    price = st.number_input("Recompensa (R$)", value=s_price, min_value=0.0, step=0.5, key=f"prc_{i}")
+                with col2:
+                    freq_opts = ["Diária", "Semanal", "Mensal", "Única"]
+                    freq_idx = 0 if s_req_freq == 'diaria' else (1 if s_req_freq == 'semanal' else (2 if s_req_freq == 'mensal' else 3))
+                    freq = st.selectbox("Frequência", freq_opts, index=freq_idx, key=f"frq_{i}")
+                    
                 freq_key = "diaria" if freq == "Diária" else ("semanal" if freq == "Semanal" else ("mensal" if freq == "Mensal" else "unica"))
                 selected_presets.append((s_title, price, freq_key))
+                st.write("---")
                 
-        st.write("---")
         st.write("**Ou envie uma missão Extra Personalizada:**")
         custom_title = st.text_input("Missão Personalizada:")
         task_desc = st.text_area("O que precisa ser feito exatamente? (Detalhes)")
