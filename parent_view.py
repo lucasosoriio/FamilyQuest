@@ -9,10 +9,11 @@ def show_main_dashboard():
     with st.expander("Cadastrar Novo Participante 👦👧"):
         with st.form("new_child_form"):
             child_name = st.text_input("Qual o nome do filho(a)?")
+            child_age = st.number_input("Idade", min_value=2, max_value=18, value=5)
             avatar = st.selectbox("Escolha um Avatar", ['👦', '👧', '🐶', '🦊', '🐉', '🦄', '🦁', '🐸'])
             submit = st.form_submit_button("Confirmar Cadastro")
             if submit and child_name:
-                db.create_user(name=child_name, role="child", pin=None, avatar=avatar)
+                db.create_user(name=child_name, role="child", pin=None, avatar=avatar, age=child_age)
                 st.success(f"Legal! {child_name} {avatar} entrou na brincadeira!")
                 st.rerun()
                 
@@ -29,6 +30,7 @@ def show_main_dashboard():
     with st.expander(f"⚙️ Editar Perfil de {selected_child['name']}"):
         with st.form("edit_profile_form"):
             new_name = st.text_input("Atualizar Nome", value=selected_child['name'])
+            new_age = st.number_input("Atualizar Idade", min_value=2, max_value=18, value=selected_child.get('age', 5))
             st.write("---")
             st.write("Você pode colocar uma foto ou usar um emoji de personagem:")
             new_photo = st.file_uploader("Enviar Nova Foto (Apaga a anterior)", type=['png', 'jpg', 'jpeg'])
@@ -45,7 +47,7 @@ def show_main_dashboard():
                 elif new_emoji != 'Manter Atual':
                     final_avatar = new_emoji
                 
-                db.update_user_profile(selected_child['id'], new_name, final_avatar)
+                db.update_user_profile(selected_child['id'], new_name, final_avatar, new_age)
                 st.toast("Perfil atualizado! 🪄")
                 st.rerun()
     
@@ -61,36 +63,66 @@ def show_main_dashboard():
     st.write("---")
     st.markdown("<h3>⚔️ Atribuir Novas Missões</h3>", unsafe_allow_html=True)
     
-    age_group = st.selectbox("Filtro de Sugestões por Idade:", ["Personalizada (Criar do Zero)", "👼 3 a 5 anos", "👦 6 a 9 anos", "🧑 10 a 14 anos"])
-    if age_group == "👼 3 a 5 anos":
-        options = ["Guardar os brinquedos na caixa", "Levar o próprio prato para a pia", "Regar as plantinhas", "Escovar os dentes sem chorar"]
-    elif age_group == "👦 6 a 9 anos":
-        options = ["Arrumar a própria cama", "Organizar a mochila da escola", "Colocar ração para o pet da casa", "Tomar banho no horário"]
-    elif age_group == "🧑 10 a 14 anos":
-        options = ["Lavar, secar e guardar a louça", "Tirar o lixo da casa para a rua", "Aspirar e limpar o próprio quarto", "Ajudar a fazer as refeições"]
+    c_age = selected_child.get('age', 5)
+    st.write(f"Vimos que **{selected_child['name']}** tem **{c_age} anos**. Missões recomendadas nesta fase:")
+    
+    if c_age <= 5:
+        suggestions = [
+            ("Guardar os brinquedos na caixa", 1.0),
+            ("Levar o prato para a pia", 1.0),
+            ("Regar as plantinhas", 1.5),
+            ("Escovar os dentes sem chorar", 2.0)
+        ]
+    elif c_age <= 9:
+        suggestions = [
+            ("Arrumar a própria cama", 3.0),
+            ("Organizar a mochila", 2.0),
+            ("Colocar ração/água pro pet", 2.0),
+            ("Tomar banho no horário", 2.5)
+        ]
     else:
-        options = []
+        suggestions = [
+            ("Lavar, secar e guardar a louça", 4.0),
+            ("Tirar o lixo da casa", 3.0),
+            ("Aspirar/Varrer o quarto", 5.0),
+            ("Ajudar a fazer as refeições", 4.0)
+        ]
         
     with st.form("new_task_form"):
-        preset = ""
-        if options:
-            preset = st.selectbox("Escolha uma Missão Pré-configurada:", options)
-            st.markdown("*(Ou preencha a caixinha abaixo para ignorar a sugestão e criar uma do zero)*")
-        
-        custom_title = st.text_input("Nome da Missão Personalizada:")
+        st.write("**Sugestões Rápidas (Pode marcar várias ao mesmo tempo):**")
+        selected_presets = []
+        for i, (s_title, s_price) in enumerate(suggestions):
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                checked = st.checkbox(s_title, key=f"chk_{i}")
+            with col2:
+                price = st.number_input("R$", value=s_price, min_value=0.0, step=0.5, key=f"prc_{i}", label_visibility="collapsed")
+            if checked:
+                selected_presets.append((s_title, price))
+                
+        st.write("---")
+        st.write("**Ou envie uma missão Extra Personalizada:**")
+        custom_title = st.text_input("Missão Personalizada:")
         task_desc = st.text_area("O que precisa ser feito exatamente? (Detalhes)")
         task_freq = st.selectbox("Frequência:", ["Diária (repete todo dia)", "Única (faz uma vez e acabou)"])
         task_freq_key = 'diaria' if 'Diária' in task_freq else 'unica'
-        task_reward = st.number_input("Recompensa da Missão (R$ ou Moedas)", min_value=0.0, step=0.5, value=2.0)
+        custom_reward = st.number_input("Recompensa (R$)", min_value=0.0, step=0.5, value=2.0)
         
-        if st.form_submit_button("Lançar Missão aos Filhos!"):
-            final_title = custom_title.strip() if custom_title.strip() else preset
-            if final_title:
-                db.create_task(selected_child['id'], final_title, task_desc, task_freq_key, task_reward)
-                st.toast("✅ A missão foi lançada!")
+        if st.form_submit_button("Atribuir Missões ao Painel da Criança!"):
+            launched = False
+            for p_title, p_reward in selected_presets:
+                db.create_task(selected_child['id'], p_title, "", 'diaria', p_reward)
+                launched = True
+            
+            if custom_title.strip():
+                db.create_task(selected_child['id'], custom_title.strip(), task_desc, task_freq_key, custom_reward)
+                launched = True
+                
+            if launched:
+                st.toast("✅ Missões lançadas com sucesso!")
                 st.rerun()
             else:
-                st.error("Ops! Você não selecionou ou digitou nenhuma missão.")
+                st.error("Ops! Você não marcou nem digitou nenhuma missão.")
 
     st.markdown("<h4>📋 Missões Ativas</h4>", unsafe_allow_html=True)
     tasks = db.get_tasks_for_child(selected_child['id'])

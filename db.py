@@ -17,6 +17,8 @@ def check_and_apply_migrations():
         c.execute("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT '👦'")
     if 'xp' not in columns:
         c.execute("ALTER TABLE users ADD COLUMN xp INTEGER DEFAULT 0")
+    if 'age' not in columns:
+        c.execute("ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 5")
         
     # Check if rewards table exists
     c.execute('''
@@ -70,7 +72,8 @@ def init_db():
             monthly_goal_name TEXT,
             monthly_goal_target REAL DEFAULT 0.0,
             avatar TEXT DEFAULT '👦',
-            xp INTEGER DEFAULT 0
+            xp INTEGER DEFAULT 0,
+            age INTEGER DEFAULT 5
         )
     ''')
     c.execute('''
@@ -155,10 +158,10 @@ def get_user_by_id(user_id):
         return dict(zip(columns, row))
     return None
 
-def create_user(name, role, pin=None, avatar='👦'):
+def create_user(name, role, pin=None, avatar='👦', age=5):
     conn = get_connection()
     c = conn.cursor()
-    c.execute("INSERT INTO users (name, role, pin, avatar) VALUES (?, ?, ?, ?)", (name, role, pin, avatar))
+    c.execute("INSERT INTO users (name, role, pin, avatar, age) VALUES (?, ?, ?, ?, ?)", (name, role, pin, avatar, age))
     conn.commit()
     conn.close()
 
@@ -169,10 +172,10 @@ def update_user_goal(user_id, goal_name, goal_target):
     conn.commit()
     conn.close()
 
-def update_user_profile(user_id, name, avatar):
+def update_user_profile(user_id, name, avatar, age):
     conn = get_connection()
     c = conn.cursor()
-    c.execute("UPDATE users SET name=?, avatar=? WHERE id=?", (name, avatar, user_id))
+    c.execute("UPDATE users SET name=?, avatar=?, age=? WHERE id=?", (name, avatar, age, user_id))
     conn.commit()
     conn.close()
 

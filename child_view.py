@@ -209,7 +209,14 @@ def show_arcade(user):
     st.markdown("<h2 style='text-align:center;'>🕹️ Fliperama da Família</h2>", unsafe_allow_html=True)
     st.write("Bem-vindo(a) ao Fliperama! Aproveite seus momentos de lazer.")
     
-    game_choice = st.selectbox("Escolha seu cartucho:", ["🐍 Jogo da Cobrinha", "🧠 Jogo da Memória"])
+    age = user.get('age', 5)
+    
+    if age < 6:
+        # Only memory game
+        game_choice = st.selectbox("Escolha seu cartucho:", ["🧠 Jogo da Memória"])
+        st.info("🎁 Continue crescendo! O Jogo da Cobrinha será desbloqueado quando você tiver 6 anos!")
+    else:
+        game_choice = st.selectbox("Escolha seu cartucho:", ["🐍 Jogo da Cobrinha", "🧠 Jogo da Memória"])
     
     if game_choice == "🐍 Jogo da Cobrinha":
         html_code = """
