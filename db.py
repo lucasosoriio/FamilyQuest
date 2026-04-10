@@ -19,6 +19,7 @@ def check_and_apply_migrations():
         c.execute("ALTER TABLE users ADD COLUMN xp INTEGER DEFAULT 0")
     if 'age' not in columns:
         c.execute("ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 5")
+    conn.commit()
         
     # Check if rewards table exists
     c.execute('''
