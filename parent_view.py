@@ -109,19 +109,27 @@ def show_main_dashboard():
             with col2:
                 price = st.number_input("R$", value=s_price, min_value=0.0, step=0.5, key=f"prc_{i}", label_visibility="collapsed")
             with col3:
-                freq_idx = 0 if s_req_freq == 'diaria' else 1
-                freq = st.selectbox("Freq", ["Diária", "Única"], index=freq_idx, key=f"frq_{i}", label_visibility="collapsed")
+                freq_opts = ["Diária", "Semanal", "Mensal", "Única"]
+                freq_idx = 0 if s_req_freq == 'diaria' else 3
+                freq = st.selectbox("Freq", freq_opts, index=freq_idx, key=f"frq_{i}", label_visibility="collapsed")
                 
             if checked:
-                freq_key = 'diaria' if freq == "Diária" else 'unica'
+                freq_key = "diaria" if freq == "Diária" else ("semanal" if freq == "Semanal" else ("mensal" if freq == "Mensal" else "unica"))
                 selected_presets.append((s_title, price, freq_key))
                 
         st.write("---")
         st.write("**Ou envie uma missão Extra Personalizada:**")
         custom_title = st.text_input("Missão Personalizada:")
         task_desc = st.text_area("O que precisa ser feito exatamente? (Detalhes)")
-        task_freq = st.selectbox("Frequência:", ["Diária (repete todo dia)", "Única (faz uma vez e acabou)"])
-        task_freq_key = 'diaria' if 'Diária' in task_freq else 'unica'
+        
+        task_freq_opts = ["Diária (repete todo dia)", "Semanal (repete 1x na semana)", "Mensal (repete 1x no mês)", "Única (faz uma vez e acabou)"]
+        task_freq = st.selectbox("Frequência:", task_freq_opts)
+        
+        if 'Diária' in task_freq: task_freq_key = 'diaria'
+        elif 'Semanal' in task_freq: task_freq_key = 'semanal'
+        elif 'Mensal' in task_freq: task_freq_key = 'mensal'
+        else: task_freq_key = 'unica'
+        
         custom_reward = st.number_input("Recompensa (R$)", min_value=0.0, step=0.5, value=2.0)
         
         if st.form_submit_button("Atribuir Missões ao Painel da Criança!"):
@@ -147,7 +155,8 @@ def show_main_dashboard():
     for t in tasks:
         color = "green" if t['status'] == 'completed' else ("orange" if t['status'] == 'waiting_approval' else "blue")
         status_pt = status_map.get(t['status'], t['status'].upper())
-        freq_pt = 'Diária' if t['frequency'] == 'diaria' else ('Única' if t['frequency'] == 'unica' else t['frequency'])
+        f = t['frequency']
+        freq_pt = 'Diária' if f == 'diaria' else ('Única' if f == 'unica' else f.capitalize())
         st.markdown(f"<div style='border-left: 5px solid {color}; padding:10px; background-color:white; border-radius:5px; margin-bottom:5px;'><b style='color:#1A202C;'>{t['title']}</b> <span style='color:#1A202C;'>- R$ {t['reward']:.2f} ({freq_pt})</span> <br> <span style='font-size:12px; font-weight:bold; color:{color}'>Status: {status_pt}</span></div>", unsafe_allow_html=True)
 
 def show_approvals():
